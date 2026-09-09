@@ -217,7 +217,7 @@
                 clothingName: "한복 / Hanbok",
                 image: "korea.png",
                 sentence: ["I'm", "wearing", "a", "beautiful", "hanbok."],
-                moreAbout: "한복은 한국의 아름다운 전통 의상이에요. 곡선이 부드럽고 옷의 색과 모양이 아름다운 것이 특징이랍니다.",
+                moreAbout: "한복은 한국의 아름다운 전통 의상이에요.<br>곡선이 부드럽고 옷의 색과 모양이 아름다운 것이 특징이랍니다.",
                 moreAboutLink: "https://kids.nationalgeographic.com/geography/countries/article/south-korea"
             },
             {
@@ -242,7 +242,7 @@
                 image: "nigeria.png",
                 sentence: ["I'm", "wearing", "a", "long", "shirt."],
                 moreAbout: "아그바다는 나이지리아를 비롯한 서아프리카 지역에서 전통적으로 남성들이 입어 온 넓고 긴 겉옷이에요.",
-                moreAboutLink: "https://www.youtube.com/results?search_query=Nigerian+Agbada"
+                moreAboutLink: "https://kids.nationalgeographic.com/geography/countries/article/nigeria"
             },
             {
                 id: "germany", name: "Germany", flagCode: "de",
@@ -250,15 +250,15 @@
                 image: "germany.png",
                 sentence: ["I'm", "wearing", "brown", "shorts."],
                 moreAbout: "레더호젠은 독일 남부, 특히 바이에른 지역에서 볼 수 있는 전통적인 가죽 바지예요. 튼튼한 가죽으로 만들고 멜빵이나 자수 장식을 더하기도 한답니다.",
-                moreAboutLink: "https://www.youtube.com/results?search_query=German+Lederhosen"
+                moreAboutLink: "https://kids.nationalgeographic.com/geography/countries/article/germany"
             },
             {
                 id: "scotland", name: "Scotland", flagCode: "gb-sct",
                 clothingName: "Kilt / 킬트",
-                image: "https://placehold.co/400x300/bfdbfe/333?text=Kilt+Image",
+                image: "scotland.png",
                 sentence: ["I'm", "wearing", "a", "checkered", "skirt."],
                 moreAbout: "킬트는 스코틀랜드의 대표적인 전통 의상으로, 허리에 둘러 입는 치마 모양의 옷이에요.",
-                moreAboutLink: "https://www.youtube.com/results?search_query=Scottish+Kilt"
+                moreAboutLink: "https://www.natgeokids.com/uk/discover/geography/countries/facts-about-scotland/"
             },
             {
                 id: "mexico", name: "Mexico", flagCode: "mx",
@@ -508,7 +508,7 @@
             actCountryName.textContent = currentCountry.name;
             actClothingName.textContent = currentCountry.clothingName;
             actImage.src = currentCountry.image;
-            actMoreAbout.textContent = currentCountry.moreAbout;
+            actMoreAbout.innerHTML = currentCountry.moreAbout;
             moreAboutBtn.href = currentCountry.moreAboutLink;
             
             wordMeanings.innerHTML = '';
