@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Many Clothes, One World</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e0f2fe;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' opacity='0.15'%3E%3Ctext y='0.9em' font-size='70'%3E🌍%3C/text%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' opacity='0.15'%3E%3Ctext y='0.9em' font-size='60'%3E✈️%3C/text%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' opacity='0.1'%3E%3Ctext y='0.9em' font-size='50'%3E☁️%3C/text%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' opacity='0.1'%3E%3Ctext y='0.9em' font-size='40'%3E🧭%3C/text%3E%3C/svg%3E"),
+                linear-gradient(135deg, #dcfce7 0%, #e0f2fe 50%, #bfdbfe 100%);
+            background-size: 150px 150px, 120px 120px, 200px 200px, 130px 130px, 100% 100%;
+            background-position: 0px 0px, 50px 50px, 100px 120px, 30px 90px, 0 0;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .brand-font {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* 비행 마일리지 게이지 */
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+            height: 24px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .airplane-icon {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
+        }
+
+        /* 🧩 퍼즐 그리드 스타일 */
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 24px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .puzzle-piece {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #cbd5e1, 0 15px 20px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            position: relative;
+            border: 4px solid #e2e8f0;
+            display: flex;
+            flex-col;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .puzzle-piece:hover {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #cbd5e1, 0 10px 15px rgba(0,0,0,0.05);
+        }
+
+        /* 퍼즐 조각의 볼록한 홈 (가짜) */
+        .puzzle-piece::before, .puzzle-piece::after {
+            content: '';
+            position: absolute;
+            background: #ffffff;
+            border: 4px solid #e2e8f0;
+            border-radius: 50%;
+        }
+
+        .puzzle-piece::before {
+            width: 36px; height: 36px;
+            right: -20px; top: 50%; transform: translateY(-50%);
+            border-left: none;
+            z-index: 10;
+        }
+
+        .puzzle-piece::after {
+            width: 36px; height: 36px;
+            bottom: -20px; left: 50%; transform: translateX(-50%);
+            border-top: none;
+            z-index: 10;
+        }
+
+        .puzzle-piece.completed {
+            background: #f1f5f9;
+            filter: grayscale(0.4);
+            opacity: 0.9;
+        }
+
+        .puzzle-piece.completed::before, .puzzle-piece.completed::after {
+            background: #f1f5f9;
+        }
+
+        .puzzle-flag-img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 auto 12px auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            border: 1px solid #e5e7eb;
+        }
+
+        .completed-flag {
+            position: absolute;
+            top: -15px;
+            right: -10px;
+            font-size: 2.5rem;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+            z-index: 20;
+        }
+
+        /* 마일리지 획득 애니메이션 */
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.2); }
+        }
+        .miles-popup {
+            position: fixed;
+            color: #fbbf24;
+            font-weight: 900;
+            font-size: 2rem;
+            text-shadow: 2px 2px 0 #b45309, -1px -1px 0 #b45309, 1px -1px 0 #b45309, -1px 1px 0 #b45309;
+            pointer-events: none;
+            animation: floatUp 1.5s ease-out forwards;
+            z-index: 100;
+        }
+
+        /* 단어 칩 스타일 */
+        .word-chip {
+            background-color: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #374151;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #d1d5db;
+            transition: all 0.1s;
+        }
+
+        .word-chip:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d1d5db;
+        }
+
+        .word-chip.selected {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+            box-shadow: none;
+            transform: translateY(4px);
+            cursor: default;
+        }
+
+        /* 정답 시 흔들림 애니메이션 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.4s;
+        }
+
+        /* 부드러운 등장 애니메이션 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        /* 복수형 s 강조 */
+        .highlight-s {
+            color: #ef4444; 
+            font-weight: 900;
+            font-size: 110%;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen pb-10">
+
+    <script>
+        // 교사용 데이터
+        const gameData = [
+            {
+                id: "korea", name: "Korea", flagCode: "kr",
+                clothingName: "한복 / Hanbok",
+                image: "korea.png",
+                sentence: ["I'm", "wearing", "a", "beautiful", "hanbok."],
+                moreAbout: "한복은 한국의 아름다운 전통 의상이에요. 곡선이 부드럽고 옷의 색과 모양이 아름다운 것이 특징이랍니다.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Korean+Hanbok"
+            },
+            {
+                id: "thailand", name: "Thailand", flagCode: "th",
+                clothingName: "ชุดไทย / 쑤타이",
+                image: "https://placehold.co/400x300/fef08a/333?text=Chut+Thai+Image",
+                sentence: ["I'm", "wearing", "a", "gold", "skirt."],
+                moreAbout: "쑤타이는 '태국의 옷'이라는 뜻이에요. 부드러운 실크와 화려한 무늬, 금빛 장식 등을 사용한 옷이 많아 우아하고 아름다운 느낌을 준답니다.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Chut+Thai"
+            },
+            {
+                id: "kenya", name: "Kenya", flagCode: "ke",
+                clothingName: "Shuka / 슈카",
+                image: "https://placehold.co/400x300/fca5a5/333?text=Shuka+Image",
+                sentence: ["I'm", "wearing", "a", "red", "blanket."],
+                moreAbout: "슈카는 케냐와 동아프리카 지역의 마사이족 사람들이 몸에 둘러 입는 천이에요. 붉은색을 비롯한 선명한 색과 체크무늬가 많이 사용되어 멀리서도 눈에 잘 띈답니다.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Maasai+Shuka"
+            },
+            {
+                id: "nigeria", name: "Nigeria", flagCode: "ng",
+                clothingName: "Agbada / 아그바다",
+                image: "https://placehold.co/400x300/a7f3d0/333?text=Agbada+Image",
+                sentence: ["I'm", "wearing", "a", "long", "shirt."],
+                moreAbout: "아그바다는 나이지리아를 비롯한 서아프리카 지역에서 전통적으로 남성들이 입어 온 넓고 긴 겉옷이에요.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Nigerian+Agbada"
+            },
+            {
+                id: "germany", name: "Germany", flagCode: "de",
+                clothingName: "Lederhosen / 레더호젠",
+                image: "https://placehold.co/400x300/d9f99d/333?text=Lederhosen+Image",
+                sentence: ["I'm", "wearing", "brown", "shorts."],
+                moreAbout: "레더호젠은 독일 남부, 특히 바이에른 지역에서 볼 수 있는 전통적인 가죽 바지예요. 튼튼한 가죽으로 만들고 멜빵이나 자수 장식을 더하기도 한답니다.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=German+Lederhosen"
+            },
+            {
+                id: "scotland", name: "Scotland", flagCode: "gb-sct",
+                clothingName: "Kilt / 킬트",
+                image: "https://placehold.co/400x300/bfdbfe/333?text=Kilt+Image",
+                sentence: ["I'm", "wearing", "a", "checkered", "skirt."],
+                moreAbout: "킬트는 스코틀랜드의 대표적인 전통 의상으로, 허리에 둘러 입는 치마 모양의 옷이에요.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Scottish+Kilt"
+            },
+            {
+                id: "mexico", name: "Mexico", flagCode: "mx",
+                clothingName: "Charro / 차로",
+                image: "https://placehold.co/400x300/fbcfe8/333?text=Charro+Image",
+                sentence: ["I'm", "wearing", "black", "pants."],
+                moreAbout: "차로 정장은 멕시코의 전통적인 기수인 ‘차로(Charro)’가 입는 화려한 옷이에요.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Mexican+Charro+Suit"
+            },
+            {
+                id: "canada", name: "Canada", flagCode: "ca",
+                clothingName: "Parka / 파카",
+                image: "https://placehold.co/400x300/e5e7eb/333?text=Parka+Image",
+                sentence: ["I'm", "wearing", "a", "warm", "jacket."],
+                moreAbout: "파카는 이누이트를 비롯한 북극 지역 사람들이 매우 추운 날씨를 견디기 위해 오랫동안 만들어 입어 온 따뜻한 겉옷이에요.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Inuit+Parka"
+            },
+            {
+                id: "peru", name: "Peru", flagCode: "pe",
+                clothingName: "Poncho / 판초",
+                image: "https://placehold.co/400x300/fde047/333?text=Poncho+Image",
+                sentence: ["I'm", "wearing", "a", "colorful", "poncho."],
+                moreAbout: "판초는 커다란 천의 가운데에 머리를 넣을 수 있는 구멍을 만들어 몸 위에 걸쳐 입는 옷이에요.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Andean+Poncho"
+            },
+            {
+                id: "argentina", name: "Argentina", flagCode: "ar",
+                clothingName: "Gaucho / 가우초",
+                image: "https://placehold.co/400x300/fed7aa/333?text=Gaucho+Image",
+                sentence: ["I'm", "wearing", "brown", "shoes."],
+                moreAbout: "가우초는 아르헨티나를 비롯한 남아메리카의 넓은 초원에서 말을 타며 생활했던 전통적인 목동이에요.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Argentine+Gaucho"
+            },
+            {
+                id: "newzealand", name: "New Zealand", flagCode: "nz",
+                clothingName: "Korowai / 코로와이",
+                image: "https://placehold.co/400x300/e9d5ff/333?text=Korowai+Image",
+                sentence: ["I'm", "wearing", "a", "feather", "cloak."],
+                moreAbout: "코로와이는 뉴질랜드 마오리족의 소중한 전통 망토예요. 식물 섬유를 정성스럽게 엮어 만들고, 종류에 따라 장식 술이나 깃털 등을 더해 아름답게 꾸미기도 한답니다.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Maori+Korowai"
+            },
+            {
+                id: "fiji", name: "Fiji", flagCode: "fj",
+                clothingName: "Sulu / 술루",
+                image: "https://placehold.co/400x300/99f6e4/333?text=Sulu+Image",
+                sentence: ["I'm", "wearing", "a", "blue", "skirt."],
+                moreAbout: "술루는 피지에서 남성과 여성 모두가 입는, 허리에 둘러 입는 천으로 만든 옷이에요.",
+                moreAboutLink: "https://www.youtube.com/results?search_query=Fijian+Sulu"
+            }
+        ];
+
+        // 단어 뜻 사전
+        const wordDictionary = {
+            "feather": "깃털",
+            "leather": "가죽",
+            "checkered": "체크무늬의",
+            "blanket": "담요",
+            "colorful": "색이 다채로운",
+            "cloak": "망토"
+        };
+
+        let currentMiles = 0;
+        const maxMiles = 1200;
+        let completedCountries = [];
+        let currentCountry = null;
+        let userSentence = [];
+        let scrambledWords = [];
+        const pluralWordsToHighlight = ["socks", "pants", "shoes", "shorts"];
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    </script>
+
+    <!-- 상단 헤더 -->
+    <header class="w-full max-w-5xl mx-auto p-4 flex flex-col sm:flex-row items-center justify-between mt-4">
+        <div class="flex items-center gap-2 mb-4 sm:mb-0 cursor-pointer hover:opacity-80 transition" onclick="showCheatModal()">
+            <span class="text-3xl">✈️</span>
+            <h1 class="brand-font text-3xl font-extrabold text-blue-600">Many Clothes, One World</h1>
+        </div>
+        
+        <div class="w-full sm:w-1/2 bg-white p-3 rounded-2xl shadow-sm border-2 border-blue-100 flex items-center gap-4">
+            <div class="text-blue-500 font-bold whitespace-nowrap">⚡ Flight Miles</div>
+            <div class="flex-1 progress-bar-container relative">
+                <div id="miles-bar" class="progress-bar w-0 rounded-full">
+                    <span class="airplane-icon">✈️</span>
+                </div>
+            </div>
+            <div id="miles-text" class="font-bold text-gray-700 whitespace-nowrap">0 / 1200</div>
+        </div>
+    </header>
+
+    <!-- 1단계: 홈 화면 (퍼즐 형태) -->
+    <main id="screen-home" class="w-full max-w-5xl mx-auto p-4 flex-1 flex flex-col items-center">
+        <h2 class="text-2xl font-bold text-gray-700 mb-6 text-center">Choose a puzzle piece to explore!</h2>
+        <div class="puzzle-grid" id="puzzle-area">
+            <!-- 퍼즐 조각들이 JS로 생성됨 -->
+        </div>
+    </main>
+
+    <!-- 2단계: 국가 상세 학습 화면 -->
+    <main id="screen-activity" class="w-full max-w-5xl mx-auto p-4 flex-1 hidden flex-col items-center">
+        
+        <div class="w-full flex justify-between items-center mb-6">
+            <button onclick="showHomeScreen()" class="px-6 py-2 bg-white border-2 border-gray-300 rounded-full font-bold text-gray-600 hover:bg-gray-50 transition shadow-sm">
+                ⬅️ Back
+            </button>
+            <div class="w-[120px]"></div>
+        </div>
+
+        <!-- 하얀 상자 안으로 나라 이름 등 모든 내용 포함 -->
+        <div class="bg-white rounded-3xl p-6 md:p-10 shadow-xl border-4 border-blue-50 w-full max-w-4xl flex flex-col items-center relative">
+            
+            <h2 id="act-country-name" class="brand-font text-4xl font-extrabold text-blue-600 mb-6 text-center">Country</h2>
+            
+            <div class="w-full md:w-2/3 lg:w-1/2 aspect-video bg-gray-50 rounded-2xl mb-4 overflow-hidden border-4 border-white shadow-md flex items-center justify-center">
+                <img id="act-image" src="" alt="Clothing" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="text-gray-400 font-bold text-xl hidden">No Image</span>
+            </div>
+            
+            <div class="flex items-center gap-3 mb-8">
+                <h3 id="act-clothing-name" class="text-2xl font-bold text-green-600">Clothing Name</h3>
+                <button onclick="playClothingTTS()" class="p-2 bg-blue-50 rounded-full border-2 border-blue-200 hover:bg-blue-100 transition shadow-sm text-xl">🔊</button>
+            </div>
+
+            <!-- 문장 만들기 영역 -->
+            <div class="w-full bg-blue-50 rounded-2xl p-6 mb-4 border-2 border-blue-100">
+                <p class="text-center text-blue-800 font-bold mb-4">Click the words in order to complete the sentence!</p>
+                <div id="sentence-slots" class="flex flex-wrap justify-center gap-3 min-h-[60px]"></div>
+                <!-- 단어 뜻 표시 영역 (학습 완료 시에만 나타남) -->
+                <div id="word-meanings" class="w-full text-center mt-6 hidden"></div>
+            </div>
+
+            <!-- 단어 칩 선택 영역 -->
+            <div id="word-bank" class="flex flex-wrap justify-center gap-4 mb-8"></div>
+
+            <!-- 학습 완료 상자 (부드러운 애니메이션) -->
+            <div id="success-area" class="w-full hidden flex-col items-center fade-in">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-3xl text-yellow-400">⭐⭐⭐</span>
+                    <h3 class="text-2xl font-extrabold text-green-500">Sentence Complete!</h3>
+                    <span class="text-3xl text-yellow-400">⭐⭐⭐</span>
+                </div>
+                
+                <div class="bg-yellow-50 rounded-xl p-6 border-2 border-yellow-200 text-gray-700 text-lg text-center w-full mb-6 font-medium">
+                    <p id="act-more-about"></p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a id="more-about-btn" href="#" target="_blank" rel="noopener noreferrer" class="px-8 py-4 bg-orange-400 text-white rounded-full font-bold text-xl shadow-[0_4px_0_#c2410c] hover:bg-orange-300 hover:translate-y-1 hover:shadow-[0_0px_0_#c2410c] transition-all">
+                        More About
+                    </a>
+                    
+                    <button onclick="showHomeScreen()" class="px-8 py-4 bg-green-500 text-white rounded-full font-bold text-xl shadow-[0_4px_0_#15803d] hover:bg-green-400 hover:translate-y-1 hover:shadow-[0_0px_0_#15803d] transition-all">
+                        Next Country 🌍
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 모든 나라 완료 모달 -->
+    <div id="final-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-10 max-w-lg w-full text-center shadow-2xl border-8 border-yellow-300">
+            <h2 class="brand-font text-5xl font-black text-blue-600 mb-4">Congratulations! 🎉</h2>
+            <p class="text-xl text-gray-700 mb-8 font-bold">You completed all puzzles and collected 1200 Miles!</p>
+            <a href="https://5flavors.my.canva.site/magicvocab" target="_blank" rel="noopener noreferrer" class="inline-block px-8 py-4 bg-purple-500 text-white rounded-full font-bold text-2xl shadow-[0_4px_0_#7e22ce] hover:bg-purple-400 transition-all animate-bounce">
+                Make an Invitation 💌
+            </a>
+        </div>
+    </div>
+
+    <!-- 치트키 모달 -->
+    <div id="cheat-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-xl border-4 border-blue-200">
+            <h3 class="text-2xl font-bold text-gray-700 mb-4">Teacher's Key 🔑</h3>
+            <input type="password" id="cheat-password" class="w-full p-4 border-2 border-gray-300 rounded-xl mb-6 text-center text-2xl font-bold" placeholder="****" onkeyup="if(event.key === 'Enter') checkCheatPassword()">
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeCheatModal()" class="px-6 py-3 bg-gray-200 rounded-full font-bold hover:bg-gray-300 w-1/2">Cancel</button>
+                <button onclick="checkCheatPassword()" class="px-6 py-3 bg-blue-500 text-white rounded-full font-bold hover:bg-blue-600 w-1/2">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM 캐싱
+        const puzzleArea = document.getElementById('puzzle-area');
+        const screenHome = document.getElementById('screen-home');
+        const screenActivity = document.getElementById('screen-activity');
+        const milesBar = document.getElementById('miles-bar');
+        const milesText = document.getElementById('miles-text');
+        
+        const actCountryName = document.getElementById('act-country-name');
+        const actClothingName = document.getElementById('act-clothing-name');
+        const actImage = document.getElementById('act-image');
+        const actMoreAbout = document.getElementById('act-more-about');
+        const moreAboutBtn = document.getElementById('more-about-btn');
+        const sentenceSlots = document.getElementById('sentence-slots');
+        const wordBank = document.getElementById('word-bank');
+        const successArea = document.getElementById('success-area');
+        const wordMeanings = document.getElementById('word-meanings');
+
+        // 1. 퍼즐 홈 화면 생성
+        function initHome() {
+            puzzleArea.innerHTML = '';
+            gameData.forEach(country => {
+                const isCompleted = completedCountries.includes(country.id);
+                const piece = document.createElement('div');
+                piece.className = `puzzle-piece flex flex-col items-center ${isCompleted ? 'completed' : ''}`;
+                
+                piece.innerHTML = `
+                    ${isCompleted ? '<div class="completed-flag">🚩</div>' : ''}
+                    <img src="https://flagcdn.com/w160/${country.flagCode}.png" alt="${country.name} Flag" class="puzzle-flag-img">
+                    <div class="font-bold text-gray-700 text-lg">${country.name}</div>
+                `;
+                
+                piece.addEventListener('click', () => openCountry(country.id));
+                puzzleArea.appendChild(piece);
+            });
+            updateMilesDisplay();
+        }
+
+        // 유틸 함수
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function formatWordText(word) {
+            const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            if (pluralWordsToHighlight.includes(cleanWord)) {
+                return word.replace(/(s)(\.?)$/i, '<span class="highlight-s">$1</span>$2');
+            }
+            return word;
+        }
+
+        // 2. 국가 진입
+        function openCountry(id) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            currentCountry = gameData.find(c => c.id === id);
+            const isCompleted = completedCountries.includes(id);
+            
+            actCountryName.textContent = currentCountry.name;
+            actClothingName.textContent = currentCountry.clothingName;
+            actImage.src = currentCountry.image;
+            actMoreAbout.textContent = currentCountry.moreAbout;
+            moreAboutBtn.href = currentCountry.moreAboutLink;
+            
+            wordMeanings.innerHTML = '';
+            wordMeanings.classList.add('hidden');
+
+            if (isCompleted) {
+                // 완료 상태로 복원
+                userSentence = currentCountry.sentence.map((w, i) => ({word: w, index: i}));
+                scrambledWords = []; 
+                renderSentenceArea();
+                
+                wordBank.innerHTML = '';
+                successArea.classList.remove('hidden');
+                successArea.classList.add('flex');
+                checkAndShowMeanings(); // 단어 뜻 표시
+            } else {
+                // 초기 문제 상태
+                userSentence = [];
+                scrambledWords = shuffle(currentCountry.sentence);
+                renderSentenceArea();
+                
+                successArea.classList.add('hidden');
+                successArea.classList.remove('flex');
+            }
+            
+            screenHome.classList.add('hidden');
+            screenActivity.classList.remove('hidden');
+            screenActivity.classList.add('flex');
+        }
+
+        function showHomeScreen() {
+            screenActivity.classList.add('hidden');
+            screenActivity.classList.remove('flex');
+            screenHome.classList.remove('hidden');
+            initHome();
+        }
+
+        // 3. 단어 뜻 체크 기능
+        function checkAndShowMeanings() {
+            wordMeanings.innerHTML = '';
+            let hasMeanings = false;
+            
+            currentCountry.sentence.forEach(word => {
+                const clean = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+                if (wordDictionary[clean]) {
+                    hasMeanings = true;
+                    const span = document.createElement('span');
+                    span.className = "inline-block mx-2 my-1 px-4 py-2 bg-white text-gray-700 rounded-full font-bold border-2 border-gray-200 shadow-sm";
+                    span.innerHTML = `<span class="text-blue-600">${clean}</span> : ${wordDictionary[clean]}`;
+                    wordMeanings.appendChild(span);
+                }
+            });
+            
+            if (hasMeanings) wordMeanings.classList.remove('hidden');
+        }
+
+        // 4. 슬롯 및 단어칩 렌더링
+        function renderSentenceArea() {
+            sentenceSlots.innerHTML = '';
+            wordBank.innerHTML = '';
+            const isCompletedState = completedCountries.includes(currentCountry.id);
+            
+            currentCountry.sentence.forEach((correctWord, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'bg-white border-2 border-dashed border-gray-300 rounded-xl px-4 py-2 min-w-[60px] min-h-[48px] flex items-center justify-center text-xl font-bold transition-all';
+                
+                if (userSentence[index]) {
+                    slot.innerHTML = formatWordText(userSentence[index].word);
+                    slot.classList.remove('border-dashed', 'border-gray-300');
+                    
+                    const isCorrect = userSentence[index].word === correctWord;
+                    
+                    if (isCorrect) {
+                        slot.classList.add('border-blue-400', 'bg-blue-50', 'text-blue-600', 'shadow-sm');
+                    } else {
+                        // 틀리면 즉각적으로 빨갛게 변함
+                        slot.classList.add('border-red-500', 'bg-red-100', 'text-red-600', 'shadow-sm');
+                    }
+                    
+                    if (!isCompletedState) {
+                        slot.style.cursor = 'pointer';
+                        slot.onclick = () => removeWord(index);
+                    }
+                } else {
+                    slot.classList.add('text-blue-600');
+                }
+                sentenceSlots.appendChild(slot);
+            });
+
+            if (!isCompletedState) {
+                scrambledWords.forEach((wordObj, i) => {
+                    const wordText = typeof wordObj === 'string' ? wordObj : wordObj.word;
+                    if (typeof wordObj === 'string') scrambledWords[i] = { word: wordText, index: i };
+
+                    const chip = document.createElement('button');
+                    chip.innerHTML = formatWordText(wordText);
+                    chip.className = 'word-chip';
+                    
+                    const isSelected = userSentence.find(item => item && item.index === scrambledWords[i].index);
+                    
+                    if (isSelected) {
+                        chip.classList.add('selected');
+                    } else {
+                        chip.onclick = () => selectWord(scrambledWords[i]);
+                    }
+                    wordBank.appendChild(chip);
+                });
+            }
+        }
+
+        // 5. 단어 클릭
+        function selectWord(wordData) {
+            if (userSentence.length < currentCountry.sentence.length) {
+                userSentence.push(wordData);
+                
+                const currentIndex = userSentence.length - 1;
+                const isCorrect = wordData.word === currentCountry.sentence[currentIndex];
+                
+                if (isCorrect) {
+                    playTone(400, "sine", 0.05); 
+                } else {
+                    // 틀린 단어를 넣으면 즉시 경고음 발생 (그리고 빨간색으로 렌더링됨)
+                    playTone(200, "sawtooth", 0.2); 
+                }
+                
+                const cleanWord = wordData.word.replace(/[^a-zA-Z]/g, '');
+                speakTTS(cleanWord);
+                renderSentenceArea();
+                
+                if (userSentence.length === currentCountry.sentence.length) {
+                    checkAnswer();
+                }
+            }
+        }
+
+        function removeWord(slotIndex) {
+            userSentence.splice(slotIndex, 1);
+            playTone(300, "sine", 0.05);
+            renderSentenceArea();
+        }
+
+        // 6. 정답 확인
+        function checkAnswer() {
+            // 모든 요소가 해당 인덱스의 정답과 일치하는지 확인
+            const isCorrect = userSentence.every((item, idx) => item.word === currentCountry.sentence[idx]);
+
+            if (isCorrect) {
+                handleSuccess();
+            } else {
+                sentenceSlots.classList.add('shake');
+                setTimeout(() => sentenceSlots.classList.remove('shake'), 500);
+                // 틀린 상태(빨간색)로 그대로 남겨둠 (학생이 직접 클릭해서 빼야 함)
+            }
+        }
+
+        function handleSuccess() {
+            playTone(600, "sine", 0.1);
+            setTimeout(() => playTone(800, "sine", 0.2), 100);
+            setTimeout(() => speakTTS(currentCountry.sentence.join(" ")), 600);
+            
+            if (!completedCountries.includes(currentCountry.id)) {
+                completedCountries.push(currentCountry.id);
+                currentMiles += 100;
+                
+                const popup = document.createElement('div');
+                popup.className = 'miles-popup';
+                popup.textContent = '+100 Miles!';
+                popup.style.left = '50%'; popup.style.top = '40%';
+                document.body.appendChild(popup);
+                setTimeout(() => popup.remove(), 1500);
+            }
+            
+            updateMilesDisplay();
+            wordBank.innerHTML = '';
+            
+            // 뜻이 있으면 표시
+            checkAndShowMeanings();
+            
+            successArea.classList.remove('hidden');
+            successArea.classList.add('flex');
+
+            if (completedCountries.length === gameData.length) {
+                setTimeout(() => {
+                    const finalModal = document.getElementById('final-modal');
+                    finalModal.classList.remove('hidden');
+                    finalModal.classList.add('flex');
+                    playTone(500, "sine", 0.2);
+                    setTimeout(() => playTone(600, "sine", 0.2), 200);
+                    setTimeout(() => playTone(800, "sine", 0.4), 400);
+                }, 1500);
+            }
+        }
+
+        // 7. 치트키
+        function showCheatModal() {
+            const m = document.getElementById('cheat-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+            document.getElementById('cheat-password').value = '';
+            setTimeout(() => document.getElementById('cheat-password').focus(), 100); 
+        }
+        function closeCheatModal() {
+            const m = document.getElementById('cheat-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+        function checkCheatPassword() {
+            const input = document.getElementById('cheat-password');
+            if (input.value === '0121') {
+                closeCheatModal();
+                completedCountries = gameData.map(c => c.id);
+                currentMiles = maxMiles;
+                updateMilesDisplay();
+                initHome();
+                
+                screenActivity.classList.add('hidden');
+                screenActivity.classList.remove('flex');
+                screenHome.classList.remove('hidden');
+            } else {
+                input.classList.add('shake', 'border-red-500', 'bg-red-50');
+                playTone(200, "sawtooth", 0.2);
+                setTimeout(() => input.classList.remove('shake', 'border-red-500', 'bg-red-50'), 500);
+            }
+        }
+
+        // Audio & TTS
+        function updateMilesDisplay() {
+            document.getElementById('miles-bar').style.width = `${(currentMiles / maxMiles) * 100}%`;
+            document.getElementById('miles-text').textContent = `${currentMiles} / ${maxMiles}`;
+        }
+
+        function playTone(freq, type, dur) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch (e) {}
+        }
+
+        function playClothingTTS() {
+            if (!currentCountry) return;
+            const originalText = currentCountry.clothingName.replace(/[가-힣]/g, '').replace(/\//g, '').trim();
+            speakTTS(originalText);
+        }
+
+        function speakTTS(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        window.onload = () => {
+            initHome();
+            document.body.addEventListener('click', () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, { once: true });
+        };
+    </script>
+</body>
+</html>
